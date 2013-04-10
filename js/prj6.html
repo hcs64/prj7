@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<title>Demo</title>
+
+<script src="util.js"></script>
+<script src="render.js"></script>
+<script src="teapot.js"></script>
+</head>
+
+<body>
+<canvas id="screen"></canvas>
+
+<script>
+"use strict";
+(function(){
+var scr = document.getElementById('screen');
+var g = graphics.getGraphics(scr, 640, 480);
+
+var world = new Space;
+var sphere = new Sphere;
+var cube = new Cube;
+var cylinder = new Cylinder;
+var teapot = new Geometry;
+var cylinder_orbiter = new Sphere;
+var cylinder_orbiter2 = new Sphere;
+
+makeTeapot(teapot);
+
+world.add(teapot);
+world.add(cube);
+world.add(cylinder);
+world.add(sphere);
+cylinder.add(cylinder_orbiter);
+cylinder_orbiter.add(cylinder_orbiter2);
+
+var anim = function () {
+    var d = new Date;
+    var t = d.getTime()/1000;
+
+    g.cls();
+
+    var m;
+
+    m = sphere.m;
+    m.makeIdentity();
+    m.translate(0,-2+Math.sin(t*1.4),0);
+    m.scale(1,Math.sin(t*1.4)+1.1,1);
+    //m.rotateY(-t);
+    
+    m = cylinder.m;
+    m.makeIdentity();
+    m.rotateY(1);
+    m.translate(6,-2,-3);
+
+    m = cube.m;
+    m.makeIdentity();
+    m.scale(10,1,1);
+    m.rotateY(1);
+    m.translate(0,-2,-10);
+
+    // a little sphere orbiting the cylinder
+    m = cylinder_orbiter.m;
+    m.makeIdentity();
+    m.scale(.5,.5,.5);
+    m.translate(1.5,0,0);
+    m.rotateZ(t);
+
+    // an orbiter for the orbiter
+    m = cylinder_orbiter2.m;
+    m.makeIdentity();
+    m.scale(.5,.5,.5);
+    m.translate(0,0,-1.5);
+    m.rotateX(t*5);
+
+    m = teapot.m;
+    m.makeIdentity();
+    m.rotateY(-Math.PI/2);
+    m.translate(3,-3,0);
+    m.rotateY(-t);
+    m.scale(2,2,2);
+
+    m = world.m;
+    m.makeIdentity();
+
+    world.update();
+
+    g.fill(sphere, 0, 255, 0);
+    g.fill(cylinder, 192, 255, 64);
+    g.fill(cube, 192, 255, 64);
+    g.fill(cylinder_orbiter, 192, 255, 64);
+    g.fill(cylinder_orbiter2, 192, 255, 64);
+    g.fill(teapot, 255, 0, 0);
+
+    g.display();
+
+    requestAnimationFrame(anim);
+};
+
+requestAnimationFrame(anim);
+
+})();
+</script>
+<br>
+Z-buffering, coloring is by surface normals<br>
+<a href="prj6_js.zip">Source</a>
+</body>
+</html>

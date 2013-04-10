@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<title>Demo</title>
+
+<script src="util.js"></script>
+<script src="render.js"></script>
+<script src="teapot.js"></script>
+</head>
+
+<body>
+<canvas id="screen"></canvas>
+
+<script>
+"use strict";
+(function(){
+var scr = document.getElementById('screen');
+var g = graphics.getGraphics(scr, 1024, 768);
+
+var world = new Space;
+var teapot = new Geometry;
+
+makeTeapot(teapot);
+
+world.add(teapot);
+
+var anim = function () {
+    var d = new Date;
+    var t = d.getTime()/1000;
+
+    g.cls();
+
+    var m;
+
+    m = teapot.m;
+    m.makeIdentity();
+    m.scale(5,5,5);
+    m.translate(0, -2+Math.sin(t)/6, 0);
+    m.rotateZ(t);
+
+    m = world.m;
+    m.makeIdentity();
+
+    world.update();
+
+    g.fill(teapot, 255, 0, 0);
+
+    g.display();
+
+    requestAnimationFrame(anim);
+};
+
+requestAnimationFrame(anim);
+
+})();
+</script>
+<br>
+Z-buffering, coloring is by surface normals<br>
+<a href="prj6_js.zip">Source</a>
+</body>
+</html>
