@@ -25,7 +25,7 @@ var cylinder = new Cylinder;
 var teapot = new Geometry;
 var cylinder_orbiter = new Sphere;
 var cylinder_orbiter2 = new Sphere;
-var light2;
+var sun;
 
 cube.material = new Material(.01,.01,.01, .2,.2,.2, 0,0,0, 1);
 sphere.material = new Material(.1,.0,.0, .5,0,0, 1,1,1, 10);
@@ -36,11 +36,14 @@ cylinder_orbiter2.material = new Material(0,0,0, 1,1,1, 0,0,0, 1);
 
 makeTeapot(teapot);
 
-teapot.material = new Material(.1,.1,.1, .7,.7,.7, .8,.8,.8, 20);
+teapot.material = new Material(.05,.02,.01, .5,.2,.1, 0,0,0, 1);
 
-g.addLight(new Light(-1,-1,-1, .2,.2,.2));
-light2 = new Light(1,1,1, 1,1,1);
-g.addLight(light2);
+// starlight
+g.addLight(new Light(0,1,0, .05,.05,.05));
+g.addLight(new Light(0,1,1, .05,.05,.05));
+
+sun = new Light(1,1,.8, 1,1,1);
+g.addLight(sun);
 
 world.add(teapot);
 world.add(cube);
@@ -49,15 +52,34 @@ world.add(sphere);
 cylinder.add(cylinder_orbiter);
 cylinder_orbiter.add(cylinder_orbiter2);
 
+var start_time = (new Date).getTime()/1000;
+
 var anim = function () {
-    var d = new Date;
-    var t = d.getTime()/1000;
+    var t = (new Date).getTime()/1000 - start_time;
 
     g.cls();
 
-    light2.x = 1/Math.SQRT2;
-    light2.y = Math.cos(t/2.5)/Math.SQRT2;
-    light2.z = Math.sin(t/2.5)/Math.SQRT2;
+    var day_time = t/2.5 - .5; // start a bit before dawn
+    var sun_intensity = Math.sin(day_time) * .95+.05;
+    var sun_dist;
+    sun.x = Math.cos(day_time)*2;
+    sun.y = Math.sin(day_time)*5;
+    sun.z = Math.cos(day_time);
+
+    sun_dist = Math.sqrt(sun.x*sun.x + sun.y*sun.y + sun.z*sun.z);
+    sun.x /= sun_dist;
+    sun.y /= sun_dist;
+    sun.z /= sun_dist;
+
+    if (sun_intensity < 0) {
+        sun.r = 0;
+        sun.g = 0;
+        sun.b = 0;
+    } else {
+        sun.r = 1*sun_intensity;
+        sun.g = 1*sun_intensity;
+        sun.b = .8*sun_intensity;
+    }
 
     var m;
 
