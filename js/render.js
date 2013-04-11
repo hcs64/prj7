@@ -906,6 +906,11 @@ var fillTrap = function (imgData,
             if (z > zbuf[idxZ]) {
                 zbuf[idxZ] = z;
 
+                /*
+                data[idx+0] = Math.round(255 * Math.pow(cLR + cdR * lt, GAMMA));
+                data[idx+1] = Math.round(255 * Math.pow(cLG + cdG * lt, GAMMA));
+                data[idx+2] = Math.round(255 * Math.pow(cLB + cdB * lt, GAMMA));
+                */
                 data[idx+0] = cLR + cdR * lt;
                 data[idx+1] = cLG + cdG * lt;
                 data[idx+2] = cLB + cdB * lt;
