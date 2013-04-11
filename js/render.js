@@ -489,8 +489,8 @@ var Sphere = function () {
 Sphere.prototype = new Geometry;
 
 Sphere.prototype.setupSphere = function () {
-    var U = 20;
-    var V = 20;
+    var U = 32;
+    var V = 32;
     var i;
 
     var u;
@@ -509,7 +509,7 @@ Sphere.prototype.setupSphere = function () {
     i = 2;
     for (vi = 1; vi <= V; vi++) {
         // v ranges from -Pi/2 to Pi/2 (the poles)
-        fv = ((vi/U)-.5)*Math.PI;
+        fv = ((vi/V)-.5)*Math.PI;
         sv = Math.sin(fv);
         cv = Math.cos(fv);
 
@@ -749,7 +749,7 @@ var Material = function (ambientR,  ambientG,   ambientB,
         var rx, ry, rz;
         var di, si;
 
-        var GAMMA = 0.45;
+        var GAMMA = .45;
 
         for (i = 0; i < lights.length; i++) {
             l = lights[i];
@@ -771,9 +771,9 @@ var Material = function (ambientR,  ambientG,   ambientB,
         }
 
         // gamma correct, scale to 255
-        return [Math.round(Math.pow(r, GAMMA) * 255),
-                Math.round(Math.pow(g, GAMMA) * 255),
-                Math.round(Math.pow(b, GAMMA) * 255)];
+        return [Math.min(255, Math.pow(r, GAMMA) * 255),
+                Math.min(255, Math.pow(g, GAMMA) * 255),
+                Math.min(255, Math.pow(b, GAMMA) * 255)];
     };
 };
 
