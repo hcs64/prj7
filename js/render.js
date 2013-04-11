@@ -408,7 +408,7 @@ Geometry.prototype.applyTransform = function () {
 };
 
 Geometry.prototype.computeNormals = function () {
-    var i, j, pj, nj;
+    var i, j, pj, nj, cj;
     
     var fn, m;
     var f = this.f, tf;
@@ -417,6 +417,8 @@ Geometry.prototype.computeNormals = function () {
     var vp, v0, v1;
     var dp = [0,0,0];
     var d1 = [0,0,0];
+
+    var pat1 = [3,0,1,2,3,0];
 
     n = [];
 
@@ -427,20 +429,15 @@ Geometry.prototype.computeNormals = function () {
 
         // weighted face normal
         // sum of cross products going counter-clockwise as viewed from outside
-        for (j = 0; j < 4; j++) {
+        for (j = 1; j < 5; j++) {
+            cj = pat1[j];
 
-            pj = j-1;
-            if (pj < 0) {
-                pj = 3;
-            }
+            pj = pat1[j-1];
 
-            nj = j+1;
-            if (nj > 3) {
-                nj = 0;
-            }
+            nj = pat1[j+1];
 
             vp = v[tf[pj]];
-            v0 = v[tf[j]];
+            v0 = v[tf[cj]];
             v1 = v[tf[nj]];
 
             dp[0] = v0[0] - vp[0];
