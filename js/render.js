@@ -741,7 +741,7 @@ var Material = function (ambientR,  ambientG,   ambientB,
                                  nx,ny,nz,      // surface normal at vertex (normalized)
                                  ex,ey,ez,       // eye direction (normalized)
                                  lights) {
-        // Phong shading
+        // Phong reflection model
         var r = ambientR;
         var g = ambientG;
         var b = ambientB;
