@@ -721,6 +721,65 @@ Cube.prototype.setupCube = function () {
 
 };
 
+//// Directional lights
+var Light = function (x,y,z, r,g,b) {
+    var m = Math.sqrt(x*x + y*y + z*z);
+
+    this.r = r;
+    this.g = g;
+    this.b = b;
+
+    // normalize
+    this.x = x/m;
+    this.y = y/m;
+    this.z = z/m;
+};
+
+//// Material properties
+var Material = function (ambientR,  ambientG,   ambientB,
+                         diffuseR,  diffuseG,   diffuseB,
+                         specularR, specularG,  specularB, specularPower) {
+
+    this.shadeVertex = function (x,y,z,
+                                 nx,ny,nz,      // surface normal at vertex (normalized)
+                                 ex,ey,ez,       // eye direction (normalized)
+                                 lights) {
+        // Phong shading
+        var r = ambientR;
+        var g = ambientG;
+        var b = ambientB;
+        var i, l, nl;
+        var rx, ry, rz;
+        var di, si;
+
+        var GAMMA = 0.45;
+
+        for (i = 0; i < lights.length; i++) {
+            l = lights[i];
+
+            nl = nx*l.x + ny*l.y + nz*l.z;
+            rx = 2*nl*nx - l.x;
+            ry = 2*nl*ny - l.y;
+            rz = 2*nl*nz - l.z;
+
+            // diffuse intensity, N * L.dir
+            di = Math.max(0, nl);
+
+            // specular intensity, R * E
+            si = Math.pow(Math.max(0, rx*ex + ry*ey + rz*ez), specularPower);
+
+            r += l.r * (di * diffuseR + si * specularR);
+            g += l.g * (di * diffuseG + si * specularG);
+            b += l.b * (di * diffuseB + si * specularB);
+        }
+
+        // gamma correct, scale to 255
+        return [Math.round(Math.pow(r, GAMMA) * 255),
+                Math.round(Math.pow(g, GAMMA) * 255),
+                Math.round(Math.pow(b, GAMMA) * 255)];
+    };
+};
+
 //// putting pixels onscreen
 var graphics = (function(){
 var o = {};
@@ -856,23 +915,39 @@ var fillTrap = function (imgData,
     }
 };
 
-var fillTri = function (imgData, minX, minY, minZ, minN, midX, midY, midZ, midN, maxX, maxY, maxZ, maxN, r, g, b) {
+var fillTri = function (imgData, minX, minY, minZ, minN, midX, midY, midZ, midN, maxX, maxY, maxZ, maxN, material, lights) {
     var midT = (midY-minY)/(maxY-minY);
     var iMidX = minX + (maxX-minX)*midT;
     var iMidZ = minZ + (maxZ-minZ)*midT;
-    
-    // fake colors with normals
-    var minR = Math.max(0,minN[0] * 255);
-    var minG = Math.max(0,minN[1] * 255);
-    var minB = Math.max(0,minN[2] * 255);
 
-    var midR = Math.max(0,midN[0] * 255);
-    var midG = Math.max(0,midN[1] * 255);
-    var midB = Math.max(0,midN[2] * 255);
+    var c;
+    var minR, minG, minB;
+    var midR, midG, midB;
+    var maxR, maxG, maxB;
 
-    var maxR = Math.max(0,maxN[0] * 255);
-    var maxG = Math.max(0,maxN[1] * 255);
-    var maxB = Math.max(0,maxN[2] * 255);
+    if (!!material) {
+        c = material.shadeVertex(minX, minY, minZ, minN[0], minN[1], minN[2], 0,0,1, lights);
+        minR = c[0]; minG = c[1]; minB = c[2]; 
+
+        c = material.shadeVertex(midX, midY, midZ, midN[0], midN[1], midN[2], 0,0,1, lights);
+        midR = c[0]; midG = c[1]; midB = c[2]; 
+
+        c = material.shadeVertex(maxX, maxY, maxZ, maxN[0], maxN[1], maxN[2], 0,0,1, lights);
+        maxR = c[0]; maxG = c[1]; maxB = c[2];
+    } else {
+        // fake colors with normals
+        minR = Math.max(0,minN[0] * 255);
+        minG = Math.max(0,minN[1] * 255);
+        minB = Math.max(0,minN[2] * 255);
+
+        midR = Math.max(0,midN[0] * 255);
+        midG = Math.max(0,midN[1] * 255);
+        midB = Math.max(0,midN[2] * 255);
+
+        maxR = Math.max(0,maxN[0] * 255);
+        maxG = Math.max(0,maxN[1] * 255);
+        maxB = Math.max(0,maxN[2] * 255);
+    }
 
     var iMidR = minR + (maxR - minR) * midT;
     var iMidG = minG + (maxG - minG) * midT;
@@ -951,6 +1026,8 @@ data = imgData.data;
 
 var FL = 10;
 
+var lights = [];
+
 var projectX = function (p) {
     return Math.floor((W / 2) + (H * p[0] / (FL - p[2])));
 };
@@ -973,7 +1050,7 @@ var drawProjLine = function (sp, ep, r, g, b) {
     return drawLine(imgData, spx, spy, epx, epy, r, g, b, 255);
 };
 
-var fillProjTri = function (v0, v1, v2, n0, n1, n2, r, g, b) {
+var fillProjTri = function (v0, v1, v2, n0, n1, n2, material) {
     var minY, minX, minZ, minN;
     var midY, midX, midZ, midN;
     var maxY, maxX, maxZ, maxN;
@@ -1033,7 +1110,7 @@ var fillProjTri = function (v0, v1, v2, n0, n1, n2, r, g, b) {
         }
     }
 
-    fillTri(imgData, minX, minY, minZ, minN, midX, midY, midZ, midN, maxX, maxY, maxZ, maxN, r, g, b);
+    fillTri(imgData, minX, minY, minZ, minN, midX, midY, midZ, midN, maxX, maxY, maxZ, maxN, material, lights);
 
     //drawLine(imgData, minX, minY, midX, midY, 255, 0, 0, 255);
     //drawLine(imgData, midX, midY, maxX, maxY, 255, 255, 0, 255);
@@ -1079,10 +1156,11 @@ return {
         }
     },
 
-    fill : function (geo, r, g, b) {
+    fill : function (geo) {
         var f = geo.f;
         var v = geo.tv;
         var n = geo.tn;
+        var m = geo.material;
         var i;
 
         for (i = 0; i < f.length; i++) {
@@ -1093,7 +1171,7 @@ return {
                 n[f[i][0]],
                 n[f[i][1]],
                 n[f[i][2]],
-                r, g, b);
+                m);
             fillProjTri(
                 v[f[i][0]],
                 v[f[i][2]],
@@ -1101,8 +1179,17 @@ return {
                 n[f[i][0]],
                 n[f[i][2]],
                 n[f[i][3]],
-                255 - r, 255 - g, 255 - b);
+                m);
         }
+    },
+
+    addLight : function (l) {
+        lights.push(l);
+    },
+
+    removeLight : function (l) {
+        var idx = lights.indexOf(l);
+        lights.splice(idx, 1);
     },
     
     render : function (t) {
