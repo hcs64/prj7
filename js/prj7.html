@@ -38,7 +38,7 @@ makeTeapot(teapot);
 
 teapot.material = new Material(.1,.1,.1, .7,.7,.7, .8,.8,.8, 20);
 
-//g.addLight(new Light(-1,-1,-1, .5,.5,.5));
+g.addLight(new Light(-1,-1,-1, .2,.2,.2));
 light2 = new Light(1,1,1, 1,1,1);
 g.addLight(light2);
 
@@ -121,7 +121,7 @@ requestAnimationFrame(anim);
 })();
 </script>
 <br>
-Z-buffering, coloring is by surface normals<br>
+Phong shading<br>
 <a href="prj6_js.zip">Source</a>
 </body>
 </html>
